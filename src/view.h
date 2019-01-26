@@ -16,6 +16,7 @@
 void view_tank(SDL_Renderer* renderer, Tank* tank1);
 void view_bullet(SDL_Renderer* renderer,Bullet* bullet_set);
 void draw_map(SDL_Renderer *renderer, Map *map1);
-
+void show_menu(SDL_Renderer *renderer,int i);
+void show_score(SDL_Renderer *renderer,STATE *state1);
 
 #endif //PROJECT_VIEW_H

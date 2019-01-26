@@ -21,6 +21,7 @@ typedef struct{
     double tool_loole ;
     Color color;
     bool life;
+    bool laser;
 }Tank;
 
 typedef struct {
@@ -56,3 +57,15 @@ typedef struct {
     Color main_color;
     Color first_color;
 }Map;
+
+
+typedef struct {
+    bool tank1;
+    bool tank2;
+    int timelast;
+    int time;
+    int sc1;
+    int sc2;
+    bool win;
+    int win_score;
+}STATE;

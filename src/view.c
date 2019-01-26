@@ -67,10 +67,10 @@ void draw_map(SDL_Renderer *renderer, Map *map1) {
         if(map1->wall_set[i].display==true) {
             int a,b,c,d;
             if(map1->wall_set[i].rc==true){
-                a=0;b=-3;c=0;d=3;
+                a=0;b=-1;c=0;d=1;
             }
             else{
-                a=-3;b=0;c=3;d=0;
+                a=-1;b=0;c=1;d=0;
             }
             thickLineRGBA(renderer,
                           map1->wall_set[i].x1+a,
@@ -85,3 +85,58 @@ void draw_map(SDL_Renderer *renderer, Map *map1) {
 }
 
 
+void show_menu(SDL_Renderer *renderer,int i){
+    Color color1,color2;
+    color1.red=200;
+    color1.blue=200;
+    color1.green=200;
+    color2.red=180;
+    color2.blue=0;
+    color2.green=0;
+    int x=165;
+    int y=80;
+    int width =15;
+    int lenth =100;
+    int distance =7;
+    thickLineRGBA(renderer,x,y,x+lenth,y,width,color1.red,color1.green,color1.blue,255);
+    if(i%4==0){stringRGBA(renderer,(x*2+lenth)/(2) -20,y-3,"Resume",color2.red,color2.green,color2.blue,255);}
+    else{stringRGBA(renderer,(x*2+lenth)/(2) -20,y-3,"Resume",0,0,0,255);}
+    y+=distance+width;
+    thickLineRGBA(renderer,x,y,x+lenth,y,width,color1.red,color1.green,color1.blue,255);
+    if(i%4==1){stringRGBA(renderer,(x*2+lenth)/(2) -29,y-3,"New game",color2.red,color2.green,color2.blue,255);}
+    else{stringRGBA(renderer,(x*2+lenth)/(2) -29,y-3,"New game",0,0,0,255);}
+    y+=distance+width;
+    thickLineRGBA(renderer,x,y,x+lenth,y,width,color1.red,color1.green,color1.blue,255);
+    if(i%4==2){stringRGBA(renderer,(x*2+lenth)/(2) -26,y-3,"Setting",color2.red,color2.green,color2.blue,255);}
+    else{stringRGBA(renderer,(x*2+lenth)/(2) -26,y-3,"Setting",0,0,0,255);}
+    y+=distance+width;
+    thickLineRGBA(renderer,x,y,x+lenth,y,width,color1.red,color1.green,color1.blue,255);
+    if(i%4==3){stringRGBA(renderer,(x*2+lenth)/(2) -18,y-3,"Exit",color2.red,color2.green,color2.blue,255);}
+    else{stringRGBA(renderer,(x*2+lenth)/(2) -15,y-3,"Exit",0,0,0,255);}
+    y+=distance+width;
+    stringRGBA(renderer,(x*2+lenth)/(2) -42,y-3,"Press space",0,0,0,255);
+
+    SDL_RenderSetScale(renderer,3.5,3.5);
+
+}
+
+void show_score(SDL_Renderer *renderer,STATE *state1){
+    int i;
+    int fx=1450;
+    int fy=50;
+    int r=20;
+    int dis=20;
+    for(i=0;i<state1->win_score-state1->sc2;i++){
+        filledCircleRGBA(renderer,fx,fy,r,0,0,0,255);
+        filledCircleRGBA(renderer,fx,fy,r-2,200,0,0,255);
+        fy+=dis+2*r;
+    }
+    fy=50;
+    fx-=60;
+    for(i=0;i<state1->win_score-state1->sc1;i++){
+        filledCircleRGBA(renderer,fx,fy,r,0,0,0,255);
+        filledCircleRGBA(renderer,fx,fy,r-2,0,0,200,255);
+        fy+=dis+2*r;
+    }
+
+}

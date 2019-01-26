@@ -9,14 +9,29 @@
 #include "functions.h"
 bool click_m = false;
 bool click_q = false;
+double distance(double x1, double y1, double x2, double y2){
+    return sqrt(pow(x1-x2,2)+pow(y1-y2,2));
+}
+
 void tank_set_place(Map* map1,Tank* tank1){
     int a=rand()%(map1->max_x-map1->map_x)+map1->map_x;
     tank1->x=a;
     int b=rand()%(map1->max_y-map1->map_y)+map1->map_y;
     tank1->y=b;
 }
-double distance(double x1, double y1, double x2, double y2){
-    return sqrt(pow(x1-x2,2)+pow(y1-y2,2));
+void creat_bullet(Tank* tank1 , Bullet* bullet_set){
+    int i;
+    for (i = 0; i < 5; ++i) {
+        if (bullet_set[i].life==false)break;
+        if(i==4)return;
+    }
+
+
+    bullet_set[i].life=true;
+    bullet_set[i].x=tank1->x + (tank1->width_of_tank/2 + bullet_set[0].radius+1)*cos(tank1->angle) ;
+    bullet_set[i].y=tank1->y +(tank1->width_of_tank/2 + bullet_set[0].radius+1)*sin(tank1->angle) ;
+    bullet_set[i].angle=tank1->angle;
+    bullet_set[i].time=0;
 }
 void physic_check(Map* map1,Tank* tank1){
         for (int j = 0; j < map1->num; j++) {
@@ -42,21 +57,8 @@ void physic_check(Map* map1,Tank* tank1){
         }
 
 }
-void creat_bullet(Tank* tank1 , Bullet* bullet_set){
-    int i;
-    for (i = 0; i < 5; ++i) {
-        if (bullet_set[i].life==false)break;
-        if(i==4)return;
-    }
 
-
-    bullet_set[i].life=true;
-    bullet_set[i].x=tank1->x + (tank1->width_of_tank/2 + bullet_set[0].radius+1)*cos(tank1->angle) ;
-    bullet_set[i].y=tank1->y +(tank1->width_of_tank/2 + bullet_set[0].radius+1)*sin(tank1->angle) ;
-    bullet_set[i].angle=tank1->angle;
-    bullet_set[i].time=0;
-}
-void move_tank(Bullet* bullet_set,Tank* tank1) {
+void move_tank(Tank* tank1) {
 
 
         const Uint8 *keyState = SDL_GetKeyboardState(NULL);
@@ -75,16 +77,10 @@ void move_tank(Bullet* bullet_set,Tank* tank1) {
             if(keyState[SDL_SCANCODE_RIGHT]){
                 tank1->angle += tank1->handling;
             }
-            if(keyState[SDL_SCANCODE_M]){
-                if(click_m==false) {
-                    creat_bullet(tank1, bullet_set);
-                    click_m = true;
-                }
-            } else{click_m=false;}
 
 
     }
-void move_second_tank(Bullet* bullet_set2,Tank* tank2) {
+void move_second_tank(Tank* tank2) {
 
 
     const Uint8 *keyState = SDL_GetKeyboardState(NULL);
@@ -103,12 +99,6 @@ void move_second_tank(Bullet* bullet_set2,Tank* tank2) {
     if(keyState[SDL_SCANCODE_F]){
         tank2->angle += tank2->handling;
     }
-    if(keyState[SDL_SCANCODE_Q]){
-        if(click_q==false) {
-            creat_bullet(tank2, bullet_set2);
-            click_q = true;
-        }
-    } else{click_q=false;}
 }
 void bullet_move(Bullet* bullet_set){
         for (int i = 0; i < 5; i++) {
@@ -125,11 +115,9 @@ bool handle_event(){
     while (SDL_PollEvent(&e))
         if (e.type == SDL_QUIT)
             return 0;
-
         return 1;
     }
 int logic(Tank* tank1,Tank* tank2,Bullet* bullet_set, Bullet* bullet_set2){
-    int a=0;
         for (int i = 0; i<5 ; i++) {
             if(bullet_set[i].life==true &&
             distance(tank1->x,tank1->y,bullet_set[i].x,bullet_set[i].y)
@@ -240,23 +228,39 @@ void load_map(Map *map1) {
     map1->max_y=max_y;
 }
 void bullet_reflection(Map* map1,Bullet* bullet_set){
+
+    // part1
     for (int i = 0; i <10 ; i++) {
         if (bullet_set[i].life==true){
             for (int j = 0; j < map1->num; j++) {
-                if(map1->wall_set[j].rc==false){
+                if(map1->wall_set[j].rc==false && map1->wall_set[j].display==false){
                     //row
                     if(bullet_set[i].x>=map1->wall_set[j].x1 &&
                         bullet_set[i].x<=map1->wall_set[j].x2 &&
-                        fabs(bullet_set[i].y-map1->wall_set[j].y1)<=(bullet_set[0].radius+4)){
+                        fabs(bullet_set[i].y-map1->wall_set[j].y1)<=(bullet_set[0].radius+1)){
                             bullet_set[i].angle*=(-1);
+                            while (bullet_set[i].x>=map1->wall_set[j].x1 &&
+                                   bullet_set[i].x<=map1->wall_set[j].x2 &&
+                                   fabs(bullet_set[i].y-map1->wall_set[j].y1)<=(bullet_set[0].radius+1)){
+                                bullet_set[i].y += bullet_set[i].speed*sin(bullet_set[i].angle);
+                                bullet_set[i].x += bullet_set[i].speed*cos(bullet_set[i].angle);
+                                bullet_set[i].time++;
+                            }
                     }
                 }
-                if(map1->wall_set[j].rc==true){
+                if(map1->wall_set[j].rc==true && map1->wall_set[j].display==false){
                     //colomn
                     if(bullet_set[i].y>=map1->wall_set[j].y1 &&
                        bullet_set[i].y<=map1->wall_set[j].y2 &&
-                       fabs(bullet_set[i].x - map1->wall_set[j].x1)<=(bullet_set[0].radius+4)){
+                       fabs(bullet_set[i].x - map1->wall_set[j].x1)<=(bullet_set[0].radius+1)){
                         bullet_set[i].angle=3.1415 -bullet_set[i].angle;
+                        while(bullet_set[i].y>=map1->wall_set[j].y1 &&
+                              bullet_set[i].y<=map1->wall_set[j].y2 &&
+                              fabs(bullet_set[i].x - map1->wall_set[j].x1)<=(bullet_set[0].radius+1)){
+                            bullet_set[i].y += bullet_set[i].speed*sin(bullet_set[i].angle);
+                            bullet_set[i].x += bullet_set[i].speed*cos(bullet_set[i].angle);
+                            bullet_set[i].time++;
+                        }
                     }
                 }
 
@@ -264,16 +268,46 @@ void bullet_reflection(Map* map1,Bullet* bullet_set){
             }
         }
     }
+//part2
+    for (int i = 0; i <10 ; i++) {
+        if (bullet_set[i].life == true) {
+            for (int j = 0; j < map1->num; j++) {
+                if (map1->wall_set[j].rc == false && map1->wall_set[j].display == true) {
+                    //row
+                    if (bullet_set[i].x >= map1->wall_set[j].x1 &&
+                        bullet_set[i].x <= map1->wall_set[j].x2 &&
+                        fabs(bullet_set[i].y - map1->wall_set[j].y1) <= (bullet_set[0].radius + 1)) {
+                        bullet_set[i].angle *= (-1);
+                        while (bullet_set[i].x >= map1->wall_set[j].x1 &&
+                               bullet_set[i].x <= map1->wall_set[j].x2 &&
+                               fabs(bullet_set[i].y - map1->wall_set[j].y1) <= (bullet_set[0].radius + 1)) {
+                            bullet_set[i].y += bullet_set[i].speed * sin(bullet_set[i].angle);
+                            bullet_set[i].x += bullet_set[i].speed * cos(bullet_set[i].angle);
+                            bullet_set[i].time++;
+                        }
+                    }
+                }
+                if (map1->wall_set[j].rc == true && map1->wall_set[j].display == true) {
+                    //colomn
+                    if (bullet_set[i].y >= map1->wall_set[j].y1 &&
+                        bullet_set[i].y <= map1->wall_set[j].y2 &&
+                        fabs(bullet_set[i].x - map1->wall_set[j].x1) <= (bullet_set[0].radius + 1)) {
+                        bullet_set[i].angle = 3.1415 - bullet_set[i].angle;
+                        while (bullet_set[i].y >= map1->wall_set[j].y1 &&
+                               bullet_set[i].y <= map1->wall_set[j].y2 &&
+                               fabs(bullet_set[i].x - map1->wall_set[j].x1) <= (bullet_set[0].radius + 1)) {
+                            bullet_set[i].y += bullet_set[i].speed * sin(bullet_set[i].angle);
+                            bullet_set[i].x += bullet_set[i].speed * cos(bullet_set[i].angle);
+                            bullet_set[i].time++;
+                        }
+                    }
+                }
 
 
+            }
+        }
     }
-void logic_handle(int* time,bool* aloane,int state ,Map* map1,Tank* tank1,Tank* tank2, Bullet* bullet_set,Bullet* bullet_set2){
-    if(state==1){tank1->life=false; tank1->x=5000; tank1->y=5000; *aloane=true;}
-    if(state==2){tank2->life=false;  tank2->x=5000; tank2->y=5000; *aloane=true;}
-    if(tank1->life==false && tank2->life==false){
-        state=0;
-        new_game(time,aloane,state,map1,tank1,tank2,bullet_set,bullet_set2);
-    }
+//end
 }
 void tank1_def(Tank* tank1){
     tank1->angle = rand() % 628;
@@ -307,16 +341,21 @@ void map_def(Map* map1){
     map1->map_x=30;
     map1->map_y=30;
     map1->map_size=80;
-    map1->wall_width =10;
+    map1->wall_width =2;
     map1->main_color.red=190;map1->main_color.green=198;map1->main_color.blue=198;map1->main_color.a=1;
     map1->first_color=map1->main_color;
 
 }
-void new_game(int* time ,bool* aloane,int state ,Map* map1,Tank* tank1,Tank* tank2, Bullet* bullet_set,Bullet* bullet_set2){
+void new_game(int a,STATE *state1,Map* map1,Tank* tank1,Tank* tank2, Bullet* bullet_set,Bullet* bullet_set2){
     int start_ticks = SDL_GetTicks();
     while (SDL_GetTicks() - start_ticks < 1000);
-    if(state!=0)map1->main_color = (state==1)?tank2->color : tank1->color;
-    if(state==0)map1->main_color=map1->first_color;
+    if(a!=3){
+        map1->main_color = (a==2)?tank1->color : tank2->color;
+        if(a==2)state1->sc1++;
+        if(a==1)state1->sc2++;
+    }
+    if(state1->sc1==state1->win_score || state1->sc2==state1->win_score)state1->win=true;
+    if(a==3)map1->main_color=map1->first_color;
     for (int i = 0; i < 5; i++) {
         bullet_set[i].life=false;
         bullet_set2[i].life=false;
@@ -326,5 +365,75 @@ void new_game(int* time ,bool* aloane,int state ,Map* map1,Tank* tank1,Tank* tan
     tank_set_place(map1,tank2);
     tank1->life=true;
     tank2->life=true;
-    *aloane=false;
+    state1->tank1=true;
+    state1->tank2=true;
+    state1->timelast=0;
+}
+void fire_tank1(Bullet* bullet_set,Tank* tank1){
+    const Uint8 *keyState = SDL_GetKeyboardState(NULL);
+    if(keyState[SDL_SCANCODE_M]){
+        if(click_m==false) {
+            creat_bullet(tank1, bullet_set);
+            click_m = true;
+        }
+    } else{click_m=false;}
+}
+void fire_second_tank1(Bullet* bullet_set2,Tank* tank2){
+    const Uint8 *keyState = SDL_GetKeyboardState(NULL);
+    if(keyState[SDL_SCANCODE_Q]){
+        if(click_q==false) {
+            creat_bullet(tank2, bullet_set2);
+            click_q = true;
+        }
+    } else{click_q=false;}
+}
+void state_def(STATE *state1){
+    state1->sc1=0;
+    state1->sc2=0;
+    state1->tank1=true;
+    state1->tank2=true;
+    state1->timelast=0;
+    state1->time=200;
+    state1->win =false;
+    state1->win_score=2;
+}
+void logic_handle(STATE *state1,Map* map1,Tank* tank1,Tank* tank2, Bullet* bullet_set,Bullet* bullet_set2) {
+    int a = logic(tank1, tank2, bullet_set, bullet_set2);
+    if (a > 0) {
+        if (a == 1) {
+            state1->tank1 = false;
+            tank1->life = false;
+            tank1->x = 2000;
+            tank1->y = 2000;
+            state1->timelast=0;
+        }
+        if (a == 2) {
+            state1->tank2 = false;
+            tank2->life = false;
+            tank2->x = 2000;
+            tank2->y = 2000;
+            state1->timelast=0;
+
+        }
+    }
+
+    if (state1->tank1 == false || state1->tank2 == false)state1->timelast++;
+
+    if(state1->timelast>state1->time){
+        int a=0;
+        if(state1->tank1==false)a+=1;
+        if(state1->tank2==false)a+=2;
+        new_game(a,state1,map1,tank1,tank2,bullet_set,bullet_set2);
+    }
+}
+
+int save(STATE *state1,Map* map1,Tank* tank1,Tank* tank2, Bullet* bullet_set,Bullet* bullet_set2){
+    const Uint8 *keyState = SDL_GetKeyboardState(NULL);
+    if (keyState[SDL_SCANCODE_ESCAPE]){
+
+        // saving
+
+        return 1;
+    }
+    return 0;
 }
